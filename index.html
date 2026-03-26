@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Tower of Hanoi Simulator - Premium</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #020617;
+      font-family: 'Inter', sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #title {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #38bdf8;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      pointer-events: none;
+    }
+
+    #hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      width: 250px;
+    }
+
+    #stats {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #mode-panel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    button.secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: white;
+      font-size: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    h2 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #38bdf8;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.5;
+      font-size: 14px;
+      opacity: 0.9;
+      white-space: pre-line;
+    }
+
+    .stat-val {
+      color: #38bdf8;
+      font-weight: 700;
+      margin-left: 5px;
+    }
+
+    #progress-container {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      z-index: 100;
+    }
+
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #38bdf8;
+      transition: width 0.3s ease-out;
+    }
+
+    #hud.shake {
+      animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translate3d(-1px, 0, 0);
+      }
+
+      20%,
+      80% {
+        transform: translate3d(2px, 0, 0);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translate3d(-4px, 0, 0);
+      }
+
+      40%,
+      60% {
+        transform: translate3d(4px, 0, 0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="title">AI Tower of Hanoi Simulator</h1>
+
+  <div id="hud">
+    <h2>AI Insight</h2>
+    <p id="explain"></p>
+  </div>
+
+  <div id="stats">
+    Moves: <span id="moveCount" class="stat-val">0</span><br>
+    Optimal: <span id="optimal" class="stat-val"></span>
+  </div>
+
+  <div id="controls">
+    <div class="slider-container">
+      <label>Number of Disks</label>
+      <input type="range" id="diskSlider" min="3" max="8" value="4" onchange="resetGame(parseInt(this.value))" />
+    </div>
+    <div class="btn-group">
+      <button onclick="isPlaying = true">Play</button>
+      <button onclick="isPlaying = false">Pause</button>
+      <button onclick="playNextMove()">Step</button>
+      <button onclick="showHint()">Hint</button>
+      <button onclick="resetGame()">Reset</button>
+    </div>
+    <div class="slider-container">
+      <label>Animation Speed</label>
+      <input type="range" min="0.01" max="0.1" step="0.01" value="0.02" oninput="moveSpeed = parseFloat(this.value)" />
+    </div>
+  </div>
+
+  <div id="mode-panel">
+    <button class="secondary" onclick="setMode('ai')">AI Mode</button>
+    <button class="secondary" onclick="setMode('user')">User Mode</button>
+    <button class="secondary" onclick="undoMove()">Undo</button>
+    <button class="secondary" onclick="redoMove()">Redo</button>
+    <button id="learnToggle" class="secondary" onclick="toggleLearningMode()">Learning Mode: OFF</button>
+  </div>
+
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <audio id="moveSound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+  <audio id="pickSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+  <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-11.mp3"></audio>
+  <audio id="winSound" src="https://www.soundjay.com/buttons/sounds/button-12.mp3"></audio>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js"></script>
+  <script src="script.js"></script>
+
+</body>
+
+</html>
